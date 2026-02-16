@@ -84,7 +84,7 @@ test("config change writes audit log", async () => {
     method: "POST",
     url: "/packs/delivery_ops/versions/1/approvals",
     payload: {
-      stage: "business_review",
+      stage: "hr_review",
       decision: "approved",
       comment: "ok",
       reviewer: "bob",

@@ -23,10 +23,15 @@ export async function runReleasePack(
 ) {
   const fetchImpl = deps?.fetchImpl ?? ((url: string, init?: RequestInit) => fetch(url, init));
   const baseUrl = input.baseUrl.replace(/\/$/, "");
+  const apiKey = process.env.CONFIG_CENTER_API_KEY;
+  const authHeaders: Record<string, string> = {};
+  if (apiKey) {
+    authHeaders["x-api-key"] = apiKey;
+  }
 
   const validateRes = await fetchImpl(
     `${baseUrl}/packs/${input.packCode}/versions/${input.versionNo}/validate`,
-    { method: "POST" },
+    { method: "POST", headers: authHeaders },
   );
 
   if (!validateRes.ok) {
@@ -37,7 +42,7 @@ export async function runReleasePack(
     `${baseUrl}/packs/${input.packCode}/versions/${input.versionNo}/release`,
     {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", ...authHeaders },
       body: JSON.stringify({
         environment: input.environment,
         releasedBy: input.releasedBy,

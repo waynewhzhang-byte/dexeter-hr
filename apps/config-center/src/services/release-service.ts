@@ -1,5 +1,5 @@
 import { DomainPackSchema } from "../../../../packages/domain-pack-schema/src";
-import type { ConfigStore, Environment, ReleaseBinding } from "../repositories/store";
+import type { ApprovalStage, ConfigStore, Environment, ReleaseBinding } from "../repositories/store";
 
 export type { ReleaseBinding };
 
@@ -29,6 +29,25 @@ export class ReleaseService {
     environment: Environment;
     releasedBy: string;
   }): Promise<ReleaseBinding> {
+    const submitted = await this.store.getSubmittedPackVersion(input.packCode, input.versionNo);
+    if (!submitted) {
+      throw new Error("release_not_ready:submission_required");
+    }
+
+    const approvals = await this.store.listApprovals(input.packCode, input.versionNo);
+    const requiredStages: ApprovalStage[] = [
+      "hr_review",
+      "business_review",
+      "security_review",
+    ];
+
+    for (let i = 0; i < requiredStages.length; i += 1) {
+      const approval = approvals[i];
+      if (!approval || approval.stage !== requiredStages[i] || approval.decision !== "approved") {
+        throw new Error("release_not_ready:approval_incomplete");
+      }
+    }
+
     return this.store.setReleaseBinding(input);
   }
 

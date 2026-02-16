@@ -69,6 +69,27 @@ test("release endpoint updates active version for env", async () => {
 
   await app.inject({
     method: "POST",
+    url: "/packs/delivery_ops/versions/1/submit",
+    payload: { submittedBy: "alice" },
+  });
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/1/approvals",
+    payload: { stage: "hr_review", decision: "approved", comment: "ok", reviewer: "alice" },
+  });
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/1/approvals",
+    payload: { stage: "business_review", decision: "approved", comment: "ok", reviewer: "bob" },
+  });
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/1/approvals",
+    payload: { stage: "security_review", decision: "approved", comment: "ok", reviewer: "sec" },
+  });
+
+  await app.inject({
+    method: "POST",
     url: "/packs/delivery_ops/versions",
     payload: {
       contentJson: makeValidDomainPack("1.1.0"),
@@ -76,6 +97,27 @@ test("release endpoint updates active version for env", async () => {
       changeNote: "v2",
       createdBy: "tester",
     },
+  });
+
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/2/submit",
+    payload: { submittedBy: "alice" },
+  });
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/2/approvals",
+    payload: { stage: "hr_review", decision: "approved", comment: "ok", reviewer: "alice" },
+  });
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/2/approvals",
+    payload: { stage: "business_review", decision: "approved", comment: "ok", reviewer: "bob" },
+  });
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/2/approvals",
+    payload: { stage: "security_review", decision: "approved", comment: "ok", reviewer: "sec" },
   });
 
   const first = (await app.inject({

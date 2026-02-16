@@ -80,6 +80,27 @@ test("runtime endpoints return active and historical packs", async () => {
 
   await app.inject({
     method: "POST",
+    url: "/packs/delivery_ops/versions/2/submit",
+    payload: { submittedBy: "alice" },
+  });
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/2/approvals",
+    payload: { stage: "hr_review", decision: "approved", comment: "ok", reviewer: "alice" },
+  });
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/2/approvals",
+    payload: { stage: "business_review", decision: "approved", comment: "ok", reviewer: "bob" },
+  });
+  await app.inject({
+    method: "POST",
+    url: "/packs/delivery_ops/versions/2/approvals",
+    payload: { stage: "security_review", decision: "approved", comment: "ok", reviewer: "sec" },
+  });
+
+  await app.inject({
+    method: "POST",
     url: "/packs/delivery_ops/versions/2/release",
     payload: { environment: "prod", releasedBy: "release-bot" },
   });

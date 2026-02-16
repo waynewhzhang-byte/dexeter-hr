@@ -4,6 +4,10 @@
 - release binding switch
 - sdk fallback
 - audit completeness
+- approval stage order (`hr_review -> business_review -> security_review`)
+- release gate (`submitted + 3 approvals`)
+- mutating API auth via `x-api-key` when `CONFIG_CENTER_API_KEY` is configured
+- operational endpoints (`/openapi.json`, `/metrics`, `/health`)
 
 ## Verification Commands
 

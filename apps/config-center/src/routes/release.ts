@@ -61,6 +61,11 @@ export function registerReleaseRoutes(
         return { message: "version not found" };
       }
 
+      if (error instanceof Error && error.message.startsWith("release_not_ready:")) {
+        reply.code(409);
+        return { message: "release not ready", reason: error.message.split(":")[1] };
+      }
+
       throw error;
     }
   });

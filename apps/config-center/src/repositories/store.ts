@@ -71,6 +71,7 @@ export type ConfigStore = {
     versionNo: number;
     submittedBy: string;
   }): Promise<SubmittedPackVersion>;
+  getSubmittedPackVersion(packCode: string, versionNo: number): Promise<SubmittedPackVersion | null>;
   setReleaseBinding(input: {
     packCode: string;
     versionNo: number;
@@ -187,6 +188,13 @@ class InMemoryConfigStore implements ConfigStore {
     });
 
     return submitted;
+  }
+
+  async getSubmittedPackVersion(
+    packCode: string,
+    versionNo: number,
+  ): Promise<SubmittedPackVersion | null> {
+    return this.submittedVersions.get(`${packCode}:${versionNo}`) ?? null;
   }
 
   async setReleaseBinding(input: {
@@ -416,6 +424,16 @@ class PostgresConfigStore implements ConfigStore {
       status: "submitted",
     };
 
+    await this.client.query(
+      `insert into pack_version_submission (id, pack_version_id, submitted_by, submitted_at)
+       values ($1, $2, $3, now())
+       on conflict (pack_version_id)
+       do update set
+         submitted_by = excluded.submitted_by,
+         submitted_at = excluded.submitted_at`,
+      [randomUUID(), version.id, input.submittedBy],
+    );
+
     await this.writeAudit({
       actor: input.submittedBy,
       action: "pack_version.submitted",
@@ -426,6 +444,32 @@ class PostgresConfigStore implements ConfigStore {
     });
 
     return submitted;
+  }
+
+  async getSubmittedPackVersion(
+    packCode: string,
+    versionNo: number,
+  ): Promise<SubmittedPackVersion | null> {
+    const res = await this.client.query<{ submitted_by: string }>(
+      `select s.submitted_by
+       from pack_version_submission s
+       join domain_pack_version v on v.id = s.pack_version_id
+       join domain_pack p on p.id = v.pack_id
+       where p.pack_code = $1 and v.version_no = $2`,
+      [packCode, versionNo],
+    );
+
+    const row = res.rows[0];
+    if (!row) {
+      return null;
+    }
+
+    return {
+      packCode,
+      versionNo,
+      submittedBy: row.submitted_by,
+      status: "submitted",
+    };
   }
 
   async setReleaseBinding(input: {

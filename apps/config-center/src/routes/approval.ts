@@ -53,6 +53,22 @@ export function registerApprovalRoutes(
         return { message: "version not found" };
       }
 
+      if (error instanceof Error && error.message.startsWith("invalid_approval_stage:")) {
+        const expected = error.message.split(":")[1] ?? "unknown";
+        reply.code(400);
+        return { message: `invalid approval stage, expected ${expected}` };
+      }
+
+      if (error instanceof Error && error.message === "approval_blocked_by_rejection") {
+        reply.code(409);
+        return { message: "approval workflow blocked by rejection" };
+      }
+
+      if (error instanceof Error && error.message === "approval_workflow_completed") {
+        reply.code(409);
+        return { message: "approval workflow already completed" };
+      }
+
       throw error;
     }
   });
