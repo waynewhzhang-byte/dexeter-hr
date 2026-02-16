@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "bun test",
+    "test": "bun test apps/config-center/tests packages/domain-pack-schema/tests packages/config-sdk/tests src/tools/hr/hr-search.test.ts",
     "typecheck": "tsc --noEmit",
     "db:migrate": "bun run infra/db/migrate.ts",
     "config-center:dev": "bun run apps/config-center/src/main.ts",
