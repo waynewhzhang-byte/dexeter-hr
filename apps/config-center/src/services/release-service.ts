@@ -1,20 +1,13 @@
 import { DomainPackSchema } from "../../../../packages/domain-pack-schema/src";
-import type { PackService } from "./pack-service";
+import type { ConfigStore, Environment, ReleaseBinding } from "../repositories/store";
 
-export type ReleaseBinding = {
-  packCode: string;
-  environment: "dev" | "staging" | "prod";
-  activeVersionNo: number;
-  releasedBy: string;
-};
+export type { ReleaseBinding };
 
 export class ReleaseService {
-  private bindings = new Map<string, ReleaseBinding>();
+  constructor(private readonly store: ConfigStore) {}
 
-  constructor(private readonly packService: PackService) {}
-
-  validateVersion(packCode: string, versionNo: number) {
-    const version = this.packService.getPackVersion(packCode, versionNo);
+  async validateVersion(packCode: string, versionNo: number) {
+    const version = await this.store.getPackVersion(packCode, versionNo);
     if (!version) {
       throw new Error("version_not_found");
     }
@@ -30,26 +23,17 @@ export class ReleaseService {
     return { valid: true, issues: [] as string[] };
   }
 
-  releaseVersion(input: {
+  async releaseVersion(input: {
     packCode: string;
     versionNo: number;
-    environment: "dev" | "staging" | "prod";
+    environment: Environment;
     releasedBy: string;
-  }): ReleaseBinding {
-    const version = this.packService.getPackVersion(input.packCode, input.versionNo);
-    if (!version) {
-      throw new Error("version_not_found");
-    }
+  }): Promise<ReleaseBinding> {
+    return this.store.setReleaseBinding(input);
+  }
 
-    const binding: ReleaseBinding = {
-      packCode: input.packCode,
-      environment: input.environment,
-      activeVersionNo: input.versionNo,
-      releasedBy: input.releasedBy,
-    };
-
-    this.bindings.set(`${input.packCode}:${input.environment}`, binding);
-
-    return binding;
+  async getActiveVersionNo(packCode: string, environment: Environment): Promise<number | null> {
+    const binding = await this.store.getReleaseBinding(packCode, environment);
+    return binding?.activeVersionNo ?? null;
   }
 }

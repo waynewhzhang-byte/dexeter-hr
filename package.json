@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "bun run infra/db/migrate.ts",
     "config-center:dev": "bun run apps/config-center/src/main.ts",
-    "config-center:smoke": "bun run apps/config-center/scripts/smoke.ts"
+    "config-center:smoke": "env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY bun run apps/config-center/scripts/smoke.ts",
+    "release:pack": "env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY bun run apps/config-center/scripts/release-pack.ts"
   },
   "dependencies": {
     "fastify": "^5.6.1",

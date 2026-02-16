@@ -19,7 +19,7 @@ export function registerReleaseRoutes(
       }
 
       try {
-        const result = releaseService.validateVersion(request.params.packCode, versionNo);
+        const result = await releaseService.validateVersion(request.params.packCode, versionNo);
 
         if (!result.valid) {
           reply.code(400);
@@ -49,7 +49,7 @@ export function registerReleaseRoutes(
     }
 
     try {
-      return releaseService.releaseVersion({
+      return await releaseService.releaseVersion({
         packCode: request.params.packCode,
         versionNo,
         environment: request.body.environment,

@@ -1,30 +1,15 @@
-export type AuditLogRecord = {
-  id: string;
-  actor: string;
-  action: string;
-  resourceType: string;
-  resourceId: string;
-  beforeJson?: unknown;
-  afterJson?: unknown;
-  createdAt: string;
-};
+import type { AuditLogRecord, ConfigStore } from "../repositories/store";
+
+export type { AuditLogRecord };
 
 export class AuditService {
-  private logs: AuditLogRecord[] = [];
+  constructor(private readonly store: ConfigStore) {}
 
-  write(input: Omit<AuditLogRecord, "id" | "createdAt">): AuditLogRecord {
-    const record: AuditLogRecord = {
-      id: `audit-${this.logs.length + 1}`,
-      createdAt: new Date().toISOString(),
-      ...input,
-    };
-
-    this.logs.push(record);
-
-    return record;
+  async write(input: Omit<AuditLogRecord, "id" | "createdAt">): Promise<AuditLogRecord> {
+    return this.store.writeAudit(input);
   }
 
-  list(): AuditLogRecord[] {
-    return [...this.logs];
+  async list(): Promise<AuditLogRecord[]> {
+    return this.store.listAudit();
   }
 }

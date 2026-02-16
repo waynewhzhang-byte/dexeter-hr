@@ -11,7 +11,7 @@ export function registerPackRoutes(
 ) {
   app.post<{ Body: { packCode: string; name: string } }>("/packs", async (request, reply) => {
     try {
-      const pack = packService.createPack(request.body);
+      const pack = await packService.createPack(request.body);
       reply.code(201);
       return pack;
     } catch (error) {
@@ -34,7 +34,7 @@ export function registerPackRoutes(
     };
   }>("/packs/:packCode/versions", async (request, reply) => {
     try {
-      const version = packService.createPackVersion({
+      const version = await packService.createPackVersion({
         packCode: request.params.packCode,
         schemaVersion: request.body.schemaVersion,
         changeNote: request.body.changeNote,
@@ -62,7 +62,7 @@ export function registerPackRoutes(
         return { message: "invalid version number" };
       }
 
-      const version = packService.getPackVersion(request.params.packCode, versionNo);
+      const version = await packService.getPackVersion(request.params.packCode, versionNo);
       if (!version) {
         reply.code(404);
         return { message: "version not found" };

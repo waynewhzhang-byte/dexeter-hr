@@ -1,70 +1,33 @@
-export type Pack = {
-  packCode: string;
-  name: string;
-  status: "draft";
-};
+import type { ConfigStore, Pack, PackVersion, SubmittedPackVersion } from "../repositories/store";
 
-export type PackVersion = {
-  packCode: string;
-  versionNo: number;
-  schemaVersion: string;
-  changeNote: string;
-  createdBy: string;
-  contentJson: unknown;
-};
+export type { Pack, PackVersion, SubmittedPackVersion };
 
 export class PackService {
-  private packs = new Map<string, Pack>();
+  constructor(private readonly store: ConfigStore) {}
 
-  private versions = new Map<string, PackVersion[]>();
-
-  createPack(input: { packCode: string; name: string }): Pack {
-    if (this.packs.has(input.packCode)) {
-      throw new Error("pack_exists");
-    }
-
-    const pack: Pack = {
-      packCode: input.packCode,
-      name: input.name,
-      status: "draft",
-    };
-
-    this.packs.set(pack.packCode, pack);
-    this.versions.set(pack.packCode, []);
-
-    return pack;
+  async createPack(input: { packCode: string; name: string }): Promise<Pack> {
+    return this.store.createPack(input);
   }
 
-  createPackVersion(input: {
+  async createPackVersion(input: {
     packCode: string;
     schemaVersion: string;
     changeNote: string;
     createdBy: string;
     contentJson: unknown;
-  }): PackVersion {
-    const existingPack = this.packs.get(input.packCode);
-    if (!existingPack) {
-      throw new Error("pack_not_found");
-    }
-
-    const versions = this.versions.get(input.packCode) ?? [];
-    const version: PackVersion = {
-      packCode: input.packCode,
-      versionNo: versions.length + 1,
-      schemaVersion: input.schemaVersion,
-      changeNote: input.changeNote,
-      createdBy: input.createdBy,
-      contentJson: input.contentJson,
-    };
-
-    versions.push(version);
-    this.versions.set(input.packCode, versions);
-
-    return version;
+  }): Promise<PackVersion> {
+    return this.store.createPackVersion(input);
   }
 
-  getPackVersion(packCode: string, versionNo: number): PackVersion | null {
-    const versions = this.versions.get(packCode) ?? [];
-    return versions.find((version) => version.versionNo === versionNo) ?? null;
+  async getPackVersion(packCode: string, versionNo: number): Promise<PackVersion | null> {
+    return this.store.getPackVersion(packCode, versionNo);
+  }
+
+  async submitPackVersion(input: {
+    packCode: string;
+    versionNo: number;
+    submittedBy: string;
+  }): Promise<SubmittedPackVersion> {
+    return this.store.submitPackVersion(input);
   }
 }
